@@ -1,0 +1,8 @@
+{% include 'bootstrap.html' %}
+<h1> {{ title }} </h1>
+
+<form METHOD="POST"> {% csrf_token %}
+    {{ form.as_p }}
+
+    <button type="submit">Save</button>
+</form>

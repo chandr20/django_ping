@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+
+
+<head>
+  <title>Ping Test</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
+<body>
+
+
+
+<div align="center" class="bg-primary text-white">IP PING TESTER</div>
+<h2><a href="{% url "serverlist" %}" class="btn btn-success btn-lg" role="button">CREATE ENTRY</a></h2>
+
+  <table id="example" border="1" class="table table-striped table-hover">
+    <thead>
+      <tr><th bgcolor="orange">ID</th>
+        <th bgcolor="orange">Servers</th>
+
+          <th style="width: 20%" bgcolor="orange">SENT</th>
+          <th  bgcolor="orange">RECIEVED</th>
+          <th  bgcolor="orange">LOST</th>
+          <th  bgcolor="orange">STATE</th>
+          <th  bgcolor="orange">TEST</th>
+          <th style="width: 40%" bgcolor="orange">Reset</th>
+           <th style="width: 40%" bgcolor="orange">Delete</th>
+          <th style="width: 40%" bgcolor="orange">Status</th>
+      </tr>
+    </thead>
+{% for items in server_ips %}
+
+    <tbody>
+      <tr>
+          <td>{{items.pk}}</td>
+          <td>{{items.Iplist}}</td>
+          <td>{{items.Sent}}</td>
+          <td>{{items.Recieved}}</td>
+          <td>{{items.Lost}}</td>
+          <td>{{items.Ping_Job.State}}</td>
+          {% with items.pk  as name %}
+          <td><button type="button" onclick="PingEvent{{ name }}()" class="btn btn-md btn-primary" >PING TEST</button>
+
+              <script>
+
+              function  PingEvent{{ name }}() {
+      $.ajax({
+        url:"/{{ name }}",
+        type: "GET", //request type
+        success:function(result){
+
+         GetJob{{ name }}(result)
+       }
+     });
+ }
+ </script>
+              <script>
+      function  GetJob{{ name }}(result) {
+      $.ajax({
+        url:"/job/" + result,
+        type: "GET", //request type
+        success:function(data){
+
+         if (data == "started")
+
+          setInterval(GetJob{{ name }}(result),5000)
+          console.log("polling");
+
+
+
+         if (data == "Finished")
+            window.location.reload(true);
+
+
+
+
+
+
+
+       }
+     });
+ }
+          </script>
+
+
+          </td>
+
+          <td><button type="button" onclick="ResetEvent{{ name }}()" class="btn btn-md btn-primary" >RESET </button>
+<script>
+
+              function  ResetEvent{{ name }}() {
+      $.ajax({
+        url:"/reset/{{ name }}",
+        type: "GET", //request type
+        success:function(result){
+
+         window.location.reload(true);
+       }
+     });
+ }
+
+
+
+
+ </script>
+
+          {% if items.Ping_Job.State == None %}
+         <td>
+          <div class="progress">
+  <div  class="progress-bar progress-bar-success progress-bar-striped" role="progressbar"
+     style="width:0%">
+
+  </div>
+</div>
+      </td>
+
+                    {% elif items.Ping_Job.State == 'started'  %}
+         <td>
+          <div class="progress">
+  <div id="progress{{name}}" class="progress-bar progress-bar-success progress-bar-striped" role="progressbar"
+     style="width:50%">
+
+  </div>
+</div>
+      </td>
+
+          {% elif items.Ping_Job.State == 'Finished'  %}
+         <td>
+          <div class="progress">
+  <div  class="progress-bar progress-bar-success progress-bar-striped" role="progressbar"
+     style="width:100%">
+
+  </div>
+</div>
+      </td>
+
+          {% endif %}
+
+           <td><button type="button" onclick="delevent{{ name }}()" class="btn btn-md btn-danger" >DELETE</button>
+
+              <script>
+
+              function  delevent{{ name }}() {
+      $.ajax({
+        url:"del_list/{{ name }}/",
+        type: "POST", //request type,
+        data:{
+
+        csrfmiddlewaretoken: '{{ csrf_token }}' },
+        success:function(result){
+
+         window.location.reload(true);
+       }
+     });
+ }
+ </script>
+      </tr>
+  {% endwith %}
+
+
+
+
+
+{% endfor %}
+    </tbody>
+  </table>
+</div>
+
+</body>
+</html>
